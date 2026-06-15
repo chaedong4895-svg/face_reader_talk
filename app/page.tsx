@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Camera, Shield, Share2, Sparkles } from 'lucide-react';
+import { Camera, Shield, Sparkles } from 'lucide-react';
 
 export default function HomePage() {
   return (
@@ -31,11 +31,6 @@ export default function HomePage() {
           icon={<Sparkles size={20} className="text-violet-500" />}
           title="사진 한 장으로 간단하게"
           description="얼굴의 분위기, 표정, 인상을 바탕으로 나만의 인상 캐릭터를 확인해보세요."
-        />
-        <FeatureCard
-          icon={<Share2 size={20} className="text-violet-500" />}
-          title="공유하기 좋은 결과 카드"
-          description="카카오톡, 인스타그램에 바로 공유할 수 있는 결과 카드를 제공합니다."
         />
         <FeatureCard
           icon={<Shield size={20} className="text-violet-500" />}
