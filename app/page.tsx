@@ -1,65 +1,109 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import Link from 'next/link';
+import { Camera, Shield, Share2, Sparkles } from 'lucide-react';
+
+export default function HomePage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="flex flex-col min-h-screen">
+      {/* 히어로 섹션 */}
+      <div className="bg-gradient-to-br from-violet-600 to-indigo-700 text-white px-6 pt-16 pb-12 text-center">
+        <div className="text-5xl mb-4">🔮</div>
+        <h1 className="text-3xl font-bold mb-2">관상톡</h1>
+        <p className="text-violet-200 text-sm mb-8">사진 속 인상으로 나의 캐릭터 찾기</p>
+
+        <Link
+          href="/upload"
+          className="inline-flex items-center gap-2 bg-white text-violet-700 font-bold px-8 py-4 rounded-full text-lg shadow-lg active:scale-95 transition-transform"
+        >
+          <Camera size={20} />
+          지금 시작하기
+        </Link>
+
+        <p className="mt-6 text-xs text-violet-300">
+          회원가입 없이 바로 체험 가능 · 분석 후 사진 자동 삭제
+        </p>
+      </div>
+
+      {/* 특징 카드 */}
+      <div className="px-4 py-8 space-y-3">
+        <FeatureCard
+          icon={<Sparkles size={20} className="text-violet-500" />}
+          title="사진 한 장으로 간단하게"
+          description="얼굴의 분위기, 표정, 인상을 바탕으로 나만의 인상 캐릭터를 확인해보세요."
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+        <FeatureCard
+          icon={<Share2 size={20} className="text-violet-500" />}
+          title="공유하기 좋은 결과 카드"
+          description="카카오톡, 인스타그램에 바로 공유할 수 있는 결과 카드를 제공합니다."
+        />
+        <FeatureCard
+          icon={<Shield size={20} className="text-violet-500" />}
+          title="개인정보 안전하게 보호"
+          description="분석이 완료된 후 사진은 즉시 삭제됩니다. 저장하지 않습니다."
+        />
+      </div>
+
+      {/* 인상 유형 미리보기 */}
+      <div className="px-4 pb-8">
+        <p className="text-center text-sm text-gray-500 mb-4">8가지 인상 유형 중 당신은?</p>
+        <div className="grid grid-cols-4 gap-2">
+          {[
+            { emoji: '🌸', label: '조율가형' },
+            { emoji: '🎯', label: '전략가형' },
+            { emoji: '☀️', label: '메이커형' },
+            { emoji: '🔭', label: '관찰자형' },
+            { emoji: '⚡', label: '실행가형' },
+            { emoji: '🌿', label: '보호자형' },
+            { emoji: '🎨', label: '크리에이터형' },
+            { emoji: '🏔️', label: '리더형' },
+          ].map((type) => (
+            <div
+              key={type.label}
+              className="bg-white rounded-xl p-2 text-center shadow-sm border border-gray-100"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+              <div className="text-xl mb-1">{type.emoji}</div>
+              <p className="text-xs text-gray-600 leading-tight">{type.label}</p>
+            </div>
+          ))}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </div>
+
+      {/* 주의사항 */}
+      <div className="mx-4 mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-4">
+        <p className="text-xs text-amber-700 leading-relaxed text-center">
+          ⚠️ 본 서비스는 <strong>엔터테인먼트 목적</strong>의 인상 해석 콘텐츠입니다.
+          <br />
+          실제 성격, 능력, 운명 등을 판단하지 않습니다.
+        </p>
+      </div>
+
+      {/* 하단 링크 */}
+      <div className="mt-auto pb-8 text-center">
+        <Link href="/privacy" className="text-xs text-gray-400 underline">
+          개인정보 처리방침
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+function FeatureCard({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex gap-3 items-start">
+      <div className="mt-0.5 shrink-0">{icon}</div>
+      <div>
+        <h3 className="font-semibold text-sm text-gray-800 mb-0.5">{title}</h3>
+        <p className="text-xs text-gray-500 leading-relaxed">{description}</p>
+      </div>
     </div>
   );
 }
