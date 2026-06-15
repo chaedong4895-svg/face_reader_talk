@@ -53,6 +53,7 @@ function compressImage(file: File): Promise<{ base64: string; mimeType: string }
 export default function UploadPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -162,6 +163,7 @@ export default function UploadPage() {
                 : 'border-gray-300 bg-white hover:border-violet-400 hover:bg-violet-50'
             }`}
             onClick={() => fileInputRef.current?.click()}
+            role="button"
             onDrop={handleDrop}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -174,10 +176,22 @@ export default function UploadPage() {
                 <p className="font-semibold text-gray-700 mb-1">사진을 선택하거나 드래그하세요</p>
                 <p className="text-xs text-gray-400">JPG, PNG · 최대 20MB</p>
               </div>
-              <button className="mt-2 flex items-center gap-2 bg-violet-600 text-white px-5 py-2.5 rounded-full text-sm font-semibold">
-                <Camera size={16} />
-                사진 선택
-              </button>
+              <div className="mt-2 flex gap-2">
+                <button
+                  onClick={(e) => { e.stopPropagation(); cameraInputRef.current?.click(); }}
+                  className="flex items-center gap-2 bg-violet-600 text-white px-4 py-2.5 rounded-full text-sm font-semibold"
+                >
+                  <Camera size={16} />
+                  카메라 촬영
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
+                  className="flex items-center gap-2 bg-white border-2 border-violet-300 text-violet-600 px-4 py-2.5 rounded-full text-sm font-semibold"
+                >
+                  <Upload size={16} />
+                  갤러리
+                </button>
+              </div>
             </div>
           </div>
         ) : (
@@ -265,10 +279,20 @@ export default function UploadPage() {
           </span>
         </label>
 
+        {/* 갤러리 선택 */}
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+          accept="image/*"
+          onChange={handleInputChange}
+          className="hidden"
+        />
+        {/* 카메라 직접 촬영 (모바일) */}
+        <input
+          ref={cameraInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
           onChange={handleInputChange}
           className="hidden"
         />
