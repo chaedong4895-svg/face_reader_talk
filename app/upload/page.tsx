@@ -3,9 +3,52 @@
 import { useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Upload, Camera, CheckCircle2, AlertCircle, X } from 'lucide-react';
+import { ArrowLeft, Upload, Camera, CheckCircle2, AlertCircle, X, Loader2 } from 'lucide-react';
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB (카메라 원본 허용, 압축으로 처리)
+const MAX_DIMENSION = 1280; // 압축 후 최대 해상도
+const JPEG_QUALITY = 0.85;
+
+// 캔버스로 이미지를 리사이즈·압축 → base64 반환
+function compressImage(file: File): Promise<{ base64: string; mimeType: string }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+
+      let { width, height } = img;
+      if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+        if (width > height) {
+          height = Math.round((height * MAX_DIMENSION) / width);
+          width = MAX_DIMENSION;
+        } else {
+          width = Math.round((width * MAX_DIMENSION) / height);
+          height = MAX_DIMENSION;
+        }
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return reject(new Error('Canvas 지원 안됨'));
+      ctx.drawImage(img, 0, 0, width, height);
+
+      const dataUrl = canvas.toDataURL('image/jpeg', JPEG_QUALITY);
+      const base64 = dataUrl.split(',')[1];
+      resolve({ base64, mimeType: 'image/jpeg' });
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('이미지를 읽을 수 없습니다.'));
+    };
+
+    img.src = url;
+  });
+}
 
 export default function UploadPage() {
   const router = useRouter();
@@ -14,29 +57,44 @@ export default function UploadPage() {
   const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [compressing, setCompressing] = useState(false);
+  const [imageReady, setImageReady] = useState(false);
 
-  const handleFile = useCallback((file: File) => {
+  const handleFile = useCallback(async (file: File) => {
     setError(null);
+    setImageReady(false);
 
     if (!file.type.startsWith('image/')) {
       setError('JPG, PNG 이미지 파일만 업로드 가능합니다.');
       return;
     }
     if (file.size > MAX_FILE_SIZE) {
-      setError('파일 크기는 5MB 이하여야 합니다.');
+      setError('파일 크기는 20MB 이하여야 합니다.');
       return;
     }
 
+    // 미리보기 즉시 표시
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
+    setCompressing(true);
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const base64 = (e.target?.result as string).split(',')[1];
-      sessionStorage.setItem('uploadedImageData', base64);
-      sessionStorage.setItem('uploadedImageMime', file.type);
-    };
-    reader.readAsDataURL(file);
+    try {
+      const { base64, mimeType } = await compressImage(file);
+
+      try {
+        sessionStorage.setItem('uploadedImageData', base64);
+        sessionStorage.setItem('uploadedImageMime', mimeType);
+        setImageReady(true);
+      } catch {
+        setError('이미지가 너무 큽니다. 더 작은 사진을 사용해 주세요.');
+        setPreviewUrl(null);
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '이미지 처리 중 오류가 발생했습니다.');
+      setPreviewUrl(null);
+    } finally {
+      setCompressing(false);
+    }
   }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,15 +119,18 @@ export default function UploadPage() {
   const clearPreview = () => {
     setPreviewUrl(null);
     setError(null);
+    setImageReady(false);
     sessionStorage.removeItem('uploadedImageData');
     sessionStorage.removeItem('uploadedImageMime');
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleAnalyze = () => {
-    if (!previewUrl || !agreed) return;
+    if (!imageReady || !agreed) return;
     router.push('/analyzing');
   };
+
+  const canAnalyze = imageReady && agreed && !compressing;
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
@@ -111,7 +172,7 @@ export default function UploadPage() {
               </div>
               <div>
                 <p className="font-semibold text-gray-700 mb-1">사진을 선택하거나 드래그하세요</p>
-                <p className="text-xs text-gray-400">JPG, PNG · 최대 5MB</p>
+                <p className="text-xs text-gray-400">JPG, PNG · 최대 20MB</p>
               </div>
               <button className="mt-2 flex items-center gap-2 bg-violet-600 text-white px-5 py-2.5 rounded-full text-sm font-semibold">
                 <Camera size={16} />
@@ -134,8 +195,17 @@ export default function UploadPage() {
               <X size={14} />
             </button>
             <div className="p-3 flex items-center gap-2 border-t border-gray-100">
-              <CheckCircle2 size={16} className="text-green-500" />
-              <p className="text-sm text-gray-600">사진이 선택되었습니다</p>
+              {compressing ? (
+                <>
+                  <Loader2 size={16} className="text-violet-500 animate-spin" />
+                  <p className="text-sm text-gray-500">사진을 최적화하고 있습니다...</p>
+                </>
+              ) : imageReady ? (
+                <>
+                  <CheckCircle2 size={16} className="text-green-500" />
+                  <p className="text-sm text-gray-600">사진이 준비되었습니다</p>
+                </>
+              ) : null}
             </div>
           </div>
         )}
@@ -198,7 +268,7 @@ export default function UploadPage() {
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/jpeg,image/png,image/webp"
+          accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
           onChange={handleInputChange}
           className="hidden"
         />
@@ -208,14 +278,14 @@ export default function UploadPage() {
       <div className="px-4 pb-8 pt-2 bg-gray-50">
         <button
           onClick={handleAnalyze}
-          disabled={!previewUrl || !agreed}
+          disabled={!canAnalyze}
           className={`w-full py-4 rounded-full font-bold text-lg transition-all ${
-            previewUrl && agreed
+            canAnalyze
               ? 'bg-violet-600 text-white shadow-lg active:scale-95'
               : 'bg-gray-200 text-gray-400 cursor-not-allowed'
           }`}
         >
-          인상 분석 시작하기 ✨
+          {compressing ? '사진 최적화 중...' : '인상 분석 시작하기 ✨'}
         </button>
       </div>
     </div>
