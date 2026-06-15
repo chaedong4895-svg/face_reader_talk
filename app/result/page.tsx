@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { RotateCcw, Home } from 'lucide-react';
 import type { AnalysisResult } from '@/lib/types';
 import ResultCard from '@/components/ResultCard';
-import ShareButtons from '@/components/ShareButtons';
 
 export default function ResultPage() {
   const router = useRouter();
@@ -60,12 +59,7 @@ export default function ResultPage() {
           </div>
         </div>
 
-        {/* 공유 버튼 */}
-        <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-          <ShareButtons result={result} />
-        </div>
-
-        {/* 하단 액션 */}
+        {/* 다시 분석 */}
         <button
           onClick={() => {
             sessionStorage.removeItem('analysisResult');
@@ -77,10 +71,7 @@ export default function ResultPage() {
           다른 사진으로 다시 분석하기
         </button>
 
-        <Link
-          href="/"
-          className="block text-center text-sm text-gray-400 pb-4"
-        >
+        <Link href="/" className="block text-center text-sm text-gray-400 pb-4">
           홈으로 돌아가기
         </Link>
       </div>
